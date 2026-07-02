@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+pydantic
+pydantic-settings
+python-dotenv
+
+# PostgreSQL
+sqlalchemy[asyncio]
+asyncpg
+
+# AI
+langchain-groq
