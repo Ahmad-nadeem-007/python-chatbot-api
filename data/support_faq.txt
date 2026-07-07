@@ -1,0 +1,37 @@
+TechNova Customer Support FAQ
+
+Support Hours
+Our support team is available Monday to Saturday, 9:00 AM to 9:00 PM (EST).
+We are closed on Sundays and major public holidays. Live chat and email are
+monitored during these hours; phone support is Monday to Friday only.
+
+How to Contact Us
+- Live chat: available on technova.example.com (bottom-right corner)
+- Email: support@technova.example.com (replies within 24 hours)
+- Phone: 1-800-NOVA-HELP (1-800-668-2435)
+- Help center: help.technova.example.com
+
+Frequently Asked Questions
+
+Q: How do I reset my NovaBook if it freezes?
+A: Press and hold the power button for 10 seconds until the screen turns off,
+   then press it again to restart. No data is lost during a force restart.
+
+Q: I forgot my NovaCloud password. What should I do?
+A: Go to the login page and click "Forgot Password". A reset link is sent to
+   your registered email and is valid for 30 minutes.
+
+Q: Can I use a NovaPhone charger to charge my NovaBook?
+A: No. The NovaBook requires a 65W USB-C adapter. The NovaPhone charger is 30W
+   and will charge very slowly or not at all.
+
+Q: How do I check my warranty status?
+A: Open the NovaCare app, go to "My Devices", and your warranty end date is
+   shown under each product.
+
+Q: Does TechNova offer data transfer from my old device?
+A: Yes. The free NovaMigrate tool transfers photos, contacts, and files. Visit
+   any TechNova store or use the in-app guide.
+
+Q: Is there a student discount?
+A: Yes, students get 10% off with a valid student ID, verified at checkout.

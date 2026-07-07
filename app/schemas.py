@@ -37,3 +37,18 @@ class PaginatedMessages(BaseModel):
     page: int
     limit: int
     messages: List[MessageResponse]
+
+# RAG / Knowledge Base schemas
+class IngestResponse(BaseModel):
+    status: str
+    files_processed: int
+    chunks_created: int
+
+class SearchResult(BaseModel):
+    content: str
+    source: str
+    distance: Optional[float] = None  # match ka score (kam = behtar)
+
+class SearchResponse(BaseModel):
+    query: str
+    results: List[SearchResult]

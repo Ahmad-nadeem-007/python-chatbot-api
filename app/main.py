@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.database import engine, Base
 # 1. CHANGE: 'chat' ki jagah direct 'chat_router' import karen
-from app.routers import chat_router 
+from app.routers import chat_router, knowledge_router
 
 app = FastAPI(
     title="Knowledge Base Chatbot API (Gemini)",
@@ -18,6 +18,7 @@ async def startup():
 
 # 2. CHANGE: 'chat.router' ki jagah 'chat_router' likhen
 app.include_router(chat_router, prefix="/api")
+app.include_router(knowledge_router, prefix="/api")
 
 @app.get("/")
 async def root():

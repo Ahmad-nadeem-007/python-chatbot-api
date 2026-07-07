@@ -5,6 +5,7 @@ from app.database import get_db
 from app.models import ChatSession, ChatMessage
 from app.schemas import MessageSend, PaginatedMessages, ChatSessionResponse, MessageResponse
 from app.services.ai_service import ai_service
+from app.services.rag_service import rag_service
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
@@ -37,7 +38,11 @@ async def send_message(payload: MessageSend, db: AsyncSession = Depends(get_db))
         )
         history = history_result.scalars().all()
 
-        bot_content = await ai_service.get_bot_response(payload.message, history)
+        # RAG: knowledge base se sawal se milte-julte chunks nikalo
+        relevant_chunks = rag_service.search(payload.message, top_k=3)
+        context = "\n\n".join(chunk["content"] for chunk in relevant_chunks)
+
+        bot_content = await ai_service.get_bot_response(payload.message, history, context=context)
 
         bot_msg = ChatMessage(session_id=chat_id, sender="bot", content=bot_content)
         db.add(bot_msg)

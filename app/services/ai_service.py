@@ -11,9 +11,21 @@ class AIService:
             temperature=0.7,
         )
 
-    async def get_bot_response(self, user_query: str, chat_history: list) -> str:
+    async def get_bot_response(self, user_query: str, chat_history: list, context: str = "") -> str:
         try:
             messages = []
+
+            # RAG (Hybrid): agar relevant context mila to AI use kare;
+            # agar context khali hai (kamzor match), to AI apni general knowledge se jawab de
+            if context:
+                system_prompt = (
+                    "You are TechNova's helpful assistant. Use the context below to answer "
+                    "the user's question when it is relevant. If the context does not contain "
+                    "the answer, answer using your own general knowledge.\n\n"
+                    f"Context:\n{context}"
+                )
+                messages.append(("system", system_prompt))
+
             for msg in chat_history:
                 if msg.sender == "user":
                     messages.append(("human", msg.content))

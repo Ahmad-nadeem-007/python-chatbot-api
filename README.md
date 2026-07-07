@@ -1,17 +1,26 @@
-# 🤖 FastAPI Chatbot API (Groq + Llama 3.3)
+# 🤖 FastAPI Chatbot API — with RAG (Groq + Llama 3.3 + ChromaDB)
 
-An **AI chatbot backend** built with **FastAPI**, using an **async PostgreSQL** database and **Groq (Llama 3.3 70B)** for AI responses. Chat sessions and messages are stored in the database, and the entire API was tested in the browser using Swagger UI.
+An **AI chatbot backend** built with **FastAPI**, using an **async PostgreSQL** database and **Groq (Llama 3.3 70B)** for AI responses. On top of the basic chatbot, it also has a **RAG (Retrieval-Augmented Generation)** layer: the bot can answer questions from a **custom knowledge base** using **embeddings + vector search (ChromaDB)** — instead of just guessing.
+
+Chat sessions and messages are stored in PostgreSQL, the knowledge base lives in a local ChromaDB vector store, and the entire API was tested in the browser using Swagger UI.
 
 ---
 
 ## 📌 What This Project Does
 
+**Core chatbot:**
 - User sends a message → the backend saves it in the database
 - The AI (Llama 3.3) replies using the previous chat history as context
 - The bot's reply is also saved in the database
 - The user can view a **list** of all their chats
 - The user can fetch the full **history of any chat (with pagination)**
 - The user can **delete** a chat (all its messages are deleted via cascade)
+
+**RAG / Knowledge Base (the interesting part):**
+- Custom documents (company docs, FAQs, policies) are broken into **chunks** and turned into **embeddings**, then stored in **ChromaDB**
+- When a user asks something, the backend runs a **semantic (vector) search** to find the most relevant chunks
+- Those chunks are passed to the LLM as **context**, so the answer is grounded in real data — not made up
+- **Hybrid mode:** if the question matches the knowledge base (e.g. company-specific), it answers from the docs; if not, the LLM falls back to its own general knowledge
 
 ---
 
@@ -26,6 +35,8 @@ An **AI chatbot backend** built with **FastAPI**, using an **async PostgreSQL** 
 | **asyncpg** | Async PostgreSQL driver (fast, non-blocking) |
 | **Pydantic / pydantic-settings** | Request/response validation and reading `.env` settings |
 | **LangChain + Groq** | To call the AI model (Llama 3.3 70B) |
+| **ChromaDB** | Local vector database — stores the knowledge base embeddings (no server/extension needed) |
+| **sentence-transformers** | Free/local embedding model (`all-MiniLM-L6-v2`) — turns text into numbers (vectors) |
 | **python-dotenv** | To load secret keys from the `.env` file |
 
 ---
@@ -116,6 +127,8 @@ Next, I built the actual chatbot API endpoints. To keep the code clean, I split 
 | `GET` | `/api/chat/list` | List of all chats |
 | `GET` | `/api/chat/{chat_id}/messages` | Full history of one chat (with pagination) |
 | `DELETE` | `/api/chat/{chat_id}` | Delete a chat and all its messages |
+| `POST` | `/api/knowledge/ingest` | Load the `data/*.txt` files into the vector database (RAG) |
+| `GET` | `/api/knowledge/search` | Test which knowledge chunks match a query (RAG) |
 
 **How the AI service works:** when a user sends a message, the backend fetches that chat's previous history (last 10 messages) and passes it to Llama 3.3, so the AI has context and gives a relevant reply.
 
@@ -144,6 +157,42 @@ On **Swagger UI**, I manually tested every endpoint:
 
 ---
 
+### 🔹 Step 6: Adding RAG (Knowledge Base) — the Real Learning
+
+After the basic chatbot worked, I added a **RAG layer** so the bot could answer from a custom knowledge base instead of guessing.
+
+**a) Dummy data** — I put some realistic company docs in a `data/` folder (`products.txt`, `refund_policy.txt`, `support_faq.txt`, `shipping_warranty.txt`) for a fictional brand "TechNova".
+
+**b) `app/services/rag_service.py`** — the brain of RAG:
+- **Chunking** → breaks big text into smaller pieces (with slight overlap so meaning isn't cut)
+- **Embeddings** → `sentence-transformers` converts each chunk into a vector (numbers)
+- **Storage** → chunks + vectors are saved in **ChromaDB** (a local folder, `chroma_db/`)
+- **Search** → a user query is embedded too, then ChromaDB finds the closest chunks using **cosine distance**
+
+**c) `app/routers/knowledge.py`** — two endpoints to manage the knowledge base:
+- `POST /api/knowledge/ingest` → reads all `data/*.txt`, chunks them, and loads them into ChromaDB
+- `GET /api/knowledge/search?q=...` → a test endpoint to see which chunks match a query (and their scores)
+
+**d) Hybrid mode** — in `ai_service.py`, if the search finds relevant chunks (distance below a threshold), they're passed to Llama as context. If nothing relevant is found, the LLM just answers from its own general knowledge. So the bot is useful for **both** company-specific and generic questions.
+
+> 💡 Note on the journey: I first tried **pgvector** (a PostgreSQL extension) but the extension wasn't available on my Windows PostgreSQL setup. So I switched to **ChromaDB** — a local, file-based vector database that needs no server extension. Chats still live in PostgreSQL; only the knowledge vectors go to ChromaDB.
+
+**RAG request flow (`POST /api/chat/send`):**
+
+```
+User message
+   ↓
+Vector search in ChromaDB  →  relevant chunks found?
+   ↓                              ↓ yes            ↓ no
+Save user message         pass chunks         no context
+   ↓                      as context              ↓
+        →  Llama 3.3 generates the answer  ←
+   ↓
+Save bot reply  →  return response
+```
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -155,9 +204,13 @@ fastapi-chatbot/
 │   ├── models.py            # Database tables (ChatSession, ChatMessage)
 │   ├── schemas.py           # Request/response validation (Pydantic)
 │   ├── routers/
-│   │   └── chat.py          # All chat API endpoints
+│   │   ├── chat.py          # All chat API endpoints
+│   │   └── knowledge.py     # RAG endpoints (ingest + search)
 │   └── services/
-│       └── ai_service.py    # Groq / Llama 3.3 AI logic
+│       ├── ai_service.py    # Groq / Llama 3.3 AI logic (hybrid mode)
+│       └── rag_service.py   # RAG brain: chunking, embeddings, vector search
+├── data/                    # Knowledge base docs (.txt files for RAG)
+├── chroma_db/               # Local vector database (auto-created, not pushed to git)
 ├── .env                     # Secret keys (not pushed to git)
 ├── .gitignore
 ├── requirements.txt         # All dependencies
@@ -187,9 +240,15 @@ pip install -r requirements.txt
 # 5. Run the app
 uvicorn app.main:app --reload
 
-# 6. Test it in the browser
+# 6. Load the knowledge base into the vector DB (RAG)
+#    In Swagger UI, call:  POST /api/knowledge/ingest
+#    (or) curl -X POST http://127.0.0.1:8000/api/knowledge/ingest
+
+# 7. Test it in the browser
 #    http://127.0.0.1:8000/docs
 ```
+
+> ⚠️ First run downloads the embedding model (`all-MiniLM-L6-v2`, ~90 MB) — this happens once and may take a minute.
 
 ---
 
@@ -198,10 +257,12 @@ uvicorn app.main:app --reload
 - A **Groq API key** is free: https://console.groq.com
 - **PostgreSQL** must be installed and running on your system, with a database created (e.g. `chatbot_db`)
 - Tables are created automatically — the app builds them on first startup
+- **Embeddings are free & local** — `sentence-transformers` runs on your machine, no API key needed for RAG
+- Run `POST /api/knowledge/ingest` **once** (or after changing the `data/` files) to load the knowledge base
 - Never push the `.env` file to git/GitHub (that's why it's in `.gitignore`)
 
 ---
 
 ## 📝 Summary (In One Line)
 
-> First did the **environment setup** → then chose tools through **R&D** (FastAPI + PostgreSQL + Groq) → then **connected the database** → then **built the chatbot APIs** → and finally **tested everything in the browser (Swagger UI)**. ✅
+> First did the **environment setup** → then chose tools through **R&D** (FastAPI + PostgreSQL + Groq) → then **connected the database** → then **built the chatbot APIs** → then added a **RAG knowledge base** (embeddings + ChromaDB vector search, with hybrid mode) → and finally **tested everything in the browser (Swagger UI)**. ✅

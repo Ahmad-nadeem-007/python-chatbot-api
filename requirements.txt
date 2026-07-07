@@ -10,3 +10,7 @@ asyncpg
 
 # AI
 langchain-groq
+
+# RAG (Knowledge Base)
+chromadb              # Local vector database (koi Postgres extension nahi chahiye)
+sentence-transformers # Text ko embedding (numbers) mein badalne wala free/local model
