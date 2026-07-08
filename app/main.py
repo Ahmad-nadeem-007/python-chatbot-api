@@ -4,8 +4,8 @@ from app.database import engine, Base
 from app.routers import chat_router, knowledge_router
 
 app = FastAPI(
-    title="Knowledge Base Chatbot API (Gemini)",
-    description="FastAPI chatbot with async PostgreSQL & Gemini 1.5",
+    title="Knowledge Base Chatbot API (Groq)",
+    description="FastAPI chatbot with async PostgreSQL & Groq (Llama 3.3 70B)",
     version="1.0"
 )
 

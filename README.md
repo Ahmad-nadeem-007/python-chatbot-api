@@ -80,7 +80,7 @@ Before building, I did some research (R&D) on which tools would work best:
 - **AI Model:** OpenAI vs Gemini vs Groq → chose **Groq (Llama 3.3 70B)** because it's extremely **fast** and offers a free tier.
 - **How to call the AI:** Direct API vs LangChain → used **LangChain** to make managing chat history (context) easier.
 
-> 💡 Note: The initial plan was to use Gemini (the title in `main.py` still says Gemini), but after R&D I settled on Groq + Llama 3.3.
+> 💡 Note: The initial plan was to use Gemini, but after R&D I settled on Groq + Llama 3.3.
 
 ---
 
