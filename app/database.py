@@ -1,4 +1,4 @@
-# Database connection aur session setup
+# Database connection and session setup
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 from app.config import settings
@@ -13,11 +13,11 @@ AsyncSessionLocal = async_sessionmaker(
     expire_on_commit=False
 )
 
-# Base class tables ke liye
+# Base class for tables
 class Base(DeclarativeBase):
     pass
 
-# Dependency injection FastAPI routers ke liye
+# Dependency injection for FastAPI routers
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session

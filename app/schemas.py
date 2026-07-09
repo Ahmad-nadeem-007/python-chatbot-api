@@ -8,7 +8,7 @@ class ChatCreate(BaseModel):
     title: Optional[str] = "New Chat"
 
 class MessageSend(BaseModel):
-    chat_id: Optional[str] = None  # Agar Null hua to naya chat session backend khud banayega
+    chat_id: Optional[str] = None  # If Null, the backend will create a new chat session automatically
     message: str
 
 # Response schemas (API output)
@@ -47,7 +47,7 @@ class IngestResponse(BaseModel):
 class SearchResult(BaseModel):
     content: str
     source: str
-    distance: Optional[float] = None  # match ka score (kam = behtar)
+    distance: Optional[float] = None  # match score (lower = better)
 
 class SearchResponse(BaseModel):
     query: str

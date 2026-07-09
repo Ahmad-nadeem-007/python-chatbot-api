@@ -15,8 +15,8 @@ class AIService:
         try:
             messages = []
 
-            # RAG (Hybrid): agar relevant context mila to AI use kare;
-            # agar context khali hai (kamzor match), to AI apni general knowledge se jawab de
+            # RAG (Hybrid): if relevant context is found, the AI uses it;
+            # if the context is empty (weak match), the AI answers from its own general knowledge
             if context:
                 system_prompt = (
                     "You are TechNova's helpful assistant. Use the context below to answer "

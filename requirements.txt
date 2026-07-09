@@ -12,5 +12,5 @@ asyncpg
 langchain-groq
 
 # RAG (Knowledge Base)
-chromadb              # Local vector database (koi Postgres extension nahi chahiye)
-sentence-transformers # Text ko embedding (numbers) mein badalne wala free/local model
+chromadb              # Local vector database (no Postgres extension required)
+sentence-transformers # Free/local model that converts text into embeddings (numbers)

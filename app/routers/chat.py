@@ -38,7 +38,7 @@ async def send_message(payload: MessageSend, db: AsyncSession = Depends(get_db))
         )
         history = history_result.scalars().all()
 
-        # RAG: knowledge base se sawal se milte-julte chunks nikalo
+        # RAG: fetch chunks from the knowledge base that are relevant to the question
         relevant_chunks = rag_service.search(payload.message, top_k=3)
         context = "\n\n".join(chunk["content"] for chunk in relevant_chunks)
 

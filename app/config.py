@@ -1,4 +1,4 @@
-# Environment variables aur settings (.env se read karne ke liye)
+# Environment variables and settings (read from .env)
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):

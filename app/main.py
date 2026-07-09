@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.database import engine, Base
-# 1. CHANGE: 'chat' ki jagah direct 'chat_router' import karen
+# 1. CHANGE: import 'chat_router' directly instead of 'chat'
 from app.routers import chat_router, knowledge_router
 
 app = FastAPI(
@@ -9,14 +9,14 @@ app = FastAPI(
     version="1.0"
 )
 
-# Startup event tables auto create karne ke liye
+# Startup event to auto-create tables
 @app.on_event("startup")
 async def startup():
     async with engine.begin() as conn:
         # Create tables if they do not exist
         await conn.run_sync(Base.metadata.create_all)
 
-# 2. CHANGE: 'chat.router' ki jagah 'chat_router' likhen
+# 2. CHANGE: write 'chat_router' instead of 'chat.router'
 app.include_router(chat_router, prefix="/api")
 app.include_router(knowledge_router, prefix="/api")
 

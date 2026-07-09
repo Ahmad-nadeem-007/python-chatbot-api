@@ -1,4 +1,4 @@
-# Knowledge Base endpoints: data files ko Chroma mein daalna + search test karna
+# Knowledge Base endpoints: load data files into Chroma + test search
 from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from app.schemas import IngestResponse, SearchResponse
@@ -6,18 +6,18 @@ from app.services.rag_service import rag_service
 
 router = APIRouter(prefix="/knowledge", tags=["Knowledge Base"])
 
-# 'data' folder ka path (project root ke andar)
+# Path to the 'data' folder (inside the project root)
 DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 
 
-# 1. INGEST — data/ folder ki saari .txt files parho, chunks banao, Chroma mein daal do
+# 1. INGEST — read all .txt files in the data/ folder, create chunks, and load them into Chroma
 @router.post("/ingest", response_model=IngestResponse)
 async def ingest_documents():
     try:
         if not DATA_DIR.exists():
-            raise HTTPException(status_code=404, detail=f"data folder nahi mila: {DATA_DIR}")
+            raise HTTPException(status_code=404, detail=f"data folder not found: {DATA_DIR}")
 
-        # Purana data hata do taake dobara ingest par duplicate na banein
+        # Remove old data so re-ingesting doesn't create duplicates
         rag_service.reset()
 
         files_processed = 0
@@ -42,11 +42,11 @@ async def ingest_documents():
         raise HTTPException(status_code=500, detail=f"Ingest error: {str(e)}")
 
 
-# 2. SEARCH — test ke liye: kisi sawal par kaun se chunks aate hain?
+# 2. SEARCH — for testing: which chunks come up for a given question?
 @router.get("/search", response_model=SearchResponse)
 async def search_knowledge(q: str):
     try:
-        # max_distance=None → saare top chunks score ke saath dikhao (koi filter nahi)
+        # max_distance=None → show all top chunks with their scores (no filter)
         results = rag_service.search(q, top_k=3, max_distance=None)
         return SearchResponse(query=q, results=results)
     except Exception as e:
